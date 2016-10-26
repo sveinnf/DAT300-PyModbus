@@ -56,9 +56,11 @@ def exampleRequests(client):
 #---------------------------------------------------------------------------#
 def beginAsynchronousTest(client):
     rq = client.write_coil(1, True)
+    #print("Printing rq: client.write_coil(1,True)")
+    #print(rq)
     rr = client.read_coils(1,1)
-    print("Hello")
-    print(rr)
+    #print("Printing rr: client.read_coils(1,1)")
+    #print(rr)
     dassert(rq, lambda r: r.function_code < 0x80)     # test that we are not an error
     dassert(rr, lambda r: r.bits[0] == True)          # test the expected value
 

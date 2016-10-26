@@ -54,15 +54,16 @@ def main():
             hr[int(row[0])] = int(row[3])
             ir[int(row[0])] = int(row[4])
 
-    # WORK IN PROGRESS, taken from Asyn-ServerExample
+    # WORK IN PROGRESS, taken from Async-ServerExample
     store = ModbusSlaveContext(
-        di1 = ModbusSparseDataBlock(di),
-        ci1 = ModbusSparseDataBlock(ci),
-        hr1 = ModbusSparseDataBlock(hr),
-        ir1 = ModbusSparseDataBlock(ir))
+        di = ModbusSparseDataBlock(di),
+        ci = ModbusSparseDataBlock(ci),
+        hr = ModbusSparseDataBlock(hr),
+        ir = ModbusSparseDataBlock(ir))
     context = ModbusServerContext(slaves=store,single=True)
 
-
+    for i in di:
+        print(di[i])
 #   Write to CSV file
     with open('CSVtest2.csv','w',newline='') as csvfile:
         testwriter = csv.writer(csvfile,delimiter=',')
