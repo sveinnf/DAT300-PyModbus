@@ -62,8 +62,7 @@ def main():
         ir = ModbusSparseDataBlock(ir))
     context = ModbusServerContext(slaves=store,single=True)
 
-    for i in di:
-        print(di[i])
+
 #   Write to CSV file
     with open('CSVtest2.csv','w',newline='') as csvfile:
         testwriter = csv.writer(csvfile,delimiter=',')
