@@ -73,13 +73,13 @@ def read_filedata(filename):
 
 
 def write_filedata(filename,a):
-'''
-    Write the data of from a context to a CSV file.
-    This function requires that there are no gaps in
-    addressing. That is all addresses must be sequential
-    for this function to be able to fully write the contents
-    of the context.
-'''
+    '''
+        Write the data of from a context to a CSV file.
+        This function requires that there are no gaps in
+        addressing. That is all addresses must be sequential
+        for this function to be able to fully write the contents
+        of the context.
+    '''
     data = a[0]
     with open(filename,'w',newline='') as csvfile:
         w = csv.writer(csvfile,delimiter=',')
@@ -97,20 +97,46 @@ def write_filedata(filename,a):
             w.writerow(line)
             i = i+1
 
-
-        # print("Writing: ")
-        # for i in di:
-        #     line = [i,di[4-i],ci[4-i],hr[4-i],ir[4-i]]
-        #     print(line)
-
-
 def main():
 
     InFilename = sys.argv[1]
     OutFilename = sys.argv[2]
     store = read_filedata(InFilename)
     context = ModbusServerContext(slaves=store,single=True)
+#    write_filedata(OutFilename,context)
+
+    address = int(sys.argv[3])
+    print("Register 1 [Coil]:")
+    print(context[0].getValues(1,address)[0])
+    print("Register 2 [Discrete Input]:")
+    print(context[0].getValues(2,address)[0])
+    print("Register 3 [Holding Register]:")
+    print(context[0].getValues(3,address)[0])
+    print("Register 4 [Input Registers]:")
+    print(context[0].getValues(4,address)[0])
+    ''' A worker process that runs every so often and
+    updates live values of the context. It should be noted
+    that there is a race condition for the update.
+    :param arguments: The input arguments to the call
+    '''
+#    log.debug("updating the context")
+#    context  = a[0]
+#    register = 3
+#    slave_id = 0x00
+#    address  = 1
+#    values   = context[slave_id].getValues(register, address, count=1)
+#    values   = [v + 1 for v in values]
+#    log.debug("new values: " + str(values))
+#    context[slave_id].setValues(register, address, values)
+#   Register 1 = Coils,
+    for i in range(0,7):
+        context[0].setValues(1,i,[True])
+        context[0].setValues(2,i,[False])
+        context[0].setValues(3,i,[52-i])
+        context[0].setValues(4,i,[i])
+
     write_filedata(OutFilename,context)
+
     #---------------------------------------------------------------------------#
     # run the server you want
     #---------------------------------------------------------------------------#
@@ -119,28 +145,6 @@ def main():
     #values = context[0].getValues(1,0x10,count=1)
     #values = [v+1 for v in values]
     #print(str(values))
-
-    #while(True):
-
-
-
-#    write_filedata(filename,store)
-
-#    print(store.getValues(int(sys.argv[2]),int(sys.argv[3])))
-#    print(store.getValues(int(sys.argv[2]),int(sys.argv[3])))
-
-
-#   Write to CSV file
-    # with open(filename,'w',newline='') as csvfile:
-    #     testwriter = csv.writer(csvfile,delimiter=',')
-    #     print("Writing: ")
-    #     for i in di:
-    #         line = [i,di[4-i],ci[4-i],hr[4-i],ir[4-i]]
-    #         print(line)
-    #         testwriter.writerow(line)
-
-
-
 
 
 if __name__ == "__main__":
