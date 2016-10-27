@@ -48,7 +48,7 @@ def read_filedata(filename):
     ir = {}
     with open(filename, newline='') as csvfile:
         data = csv.reader(csvfile,delimiter=',')
-        print("Before: ")
+        #print("Before: ")
         for row in data:
             # Read data into dictionaries, row[0] is address and rest is
             # di = Discrete input, ci = Coils, hr = Holding Registers
@@ -72,11 +72,19 @@ def read_filedata(filename):
 
 
 
-def write_filedata(filename,data):
-#   Write to CSV file
+def write_filedata(filename,a):
+'''
+    Write the data of from a context to a CSV file.
+    This function requires that there are no gaps in
+    addressing. That is all addresses must be sequential
+    for this function to be able to fully write the contents
+    of the context.
+'''
+    data = a[0]
     with open(filename,'w',newline='') as csvfile:
         w = csv.writer(csvfile,delimiter=',')
         i = 0
+        #print("After: ")
         while(data.validate(1,i) == True):
             # Get values, (function code, Address, Count=1)
             # FC 4 = Read Input Register
@@ -85,7 +93,7 @@ def write_filedata(filename,data):
             # FC 1 = Read Coil (Boolean values)
             line = [i+1,data.getValues(2,i)[0],data.getValues(1,i)[0],data.getValues(3,i)[0],
             data.getValues(4,i)[0]]
-            print(line)
+            #print(line)
             w.writerow(line)
             i = i+1
 
@@ -98,14 +106,21 @@ def write_filedata(filename,data):
 
 def main():
 
-    filename = sys.argv[1]
-    store = read_filedata(filename)
+    InFilename = sys.argv[1]
+    OutFilename = sys.argv[2]
+    store = read_filedata(InFilename)
     context = ModbusServerContext(slaves=store,single=True)
+    write_filedata(OutFilename,context)
     #---------------------------------------------------------------------------#
     # run the server you want
     #---------------------------------------------------------------------------#
     # Tcp:
-    StartTcpServer(context, identity=identity, address=("localhost", 502))
+    #StartTcpServer(context, identity=identity, address=("localhost", 502))
+    #values = context[0].getValues(1,0x10,count=1)
+    #values = [v+1 for v in values]
+    #print(str(values))
+
+    #while(True):
 
 
 
