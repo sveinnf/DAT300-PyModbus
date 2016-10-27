@@ -54,22 +54,32 @@ log.setLevel(logging.DEBUG)
 #
 #    client = ModbusClient('localhost', retries=3, retry_on_empty=True)
 #---------------------------------------------------------------------------#
-client = ModbusClient('localhost', port=502)
+client = ModbusClient('localhost', port=5020)
 #client = ModbusClient(method='ascii', port='/dev/pts/2', timeout=1)
 #client = ModbusClient(method='rtu', port='/dev/pts/2', timeout=1)
 client.connect()
 
 
-rq = client.write_coil(1, False)
-rr = client.read_coils(1,1)
+rq = client.write_coil(0, False)
+rr = client.read_coils(0,1)
 print("rr.bits[0]: ")
 print(rr.bits[0])
 assert(rq.function_code < 0x80)     # test that we are not an error
 assert(rr.bits[0] == False)          # test the expected value
 
-rq = client.write_coils(1, [True]*8)
-rr = client.read_coils(1,8)
+rq = client.write_coils(0, [True]*8)
+rr = client.read_coils(0,8)
 print("rr.bits[0]: ")
 print(rr.bits)
 assert(rq.function_code < 0x80)     # test that we are not an error
 assert(rr.bits == [True]*8)          # test the expected value
+
+rq = client.write_register(0,100)
+rr = client.read_holding_registers(0,1)
+assert(rq.function_code < 0x80)     # test that we are not an error
+assert(rr.registers[0] == 100)       # test the expected value
+
+rq = client.write_registers(1, [10]*8)
+rr = client.read_holding_registers(1,8)
+assert(rq.function_code < 0x80)     # test that we are not an error
+assert(rr.registers == [10]*8)      # test the expected value
