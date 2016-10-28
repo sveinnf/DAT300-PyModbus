@@ -1,5 +1,3 @@
-### TODO: ADD
-
 '''
 Implementation of a server with a background thread updating the values of the
 server as it is running. The server continously reads from a supplied input
@@ -16,6 +14,9 @@ The outputfile created by the program is a csv file and contains data orderd in
 the aformentionend way. If the -O (--outputfile) option is not used a file
 called "OutputExampleFile.csv" will be created in the same directory as the
 program is run from.
+
+The same file can be used as input and output file by setting the option -S
+(--use_samefile)
 '''
 #---------------------------------------------------------------------------#
 # import the modbus libraries we need
@@ -43,8 +44,6 @@ log = logging.getLogger("pymodbus")
 # Import other services
 #---------------------------------------------------------------------------#
 from optparse import OptionParser
-
-
 import sys
 import csv
 
@@ -116,11 +115,17 @@ def updating_writer(a):
     data = read_filedata(filename)
     log.debug("Updating context")
     i = 0
-    for i in range(0,51):
-        context[0].setValues(1,i,data.getValues(1,i))
-        context[0].setValues(2,i,data.getValues(2,i))
-        context[0].setValues(3,i,data.getValues(3,i))
-        context[0].setValues(4,i,data.getValues(4,i))
+    #for i in range(0,51):
+    while(context[0].validate(1,i) == True):
+        if context[0].getValues(2,i) is not data.getValues(2,i):
+            context[0].setValules(2,i,data.getValues(2,i))
+        if context[0].getValues(4,i) is not data.getValues(4,i):
+            context[0].setValues(4,i,data.getValues(4,i))
+        i = i+1
+        # context[0].setValues(1,i,data.getValues(1,i))
+        # context[0].setValues(2,i,data.getValues(2,i))
+        # context[0].setValues(3,i,data.getValues(3,i))
+        # context[0].setValues(4,i,data.getValues(4,i))
         #log.debug("New values: "+ str(data.getValues(2,i)) + str(data.getValues(1,i))
         # + str(data.getValues(3,i)) + str(data.getValues(4,i)))
     log.debug("Done updating context!")
@@ -178,6 +183,18 @@ def get_options():
         help="Name of outputfile for writing values",
         dest="output_filename", default="OutputExampleFile.csv")
 
+    parser.add_option("-R","--read_frequency",
+        help="Number of seconds between filereads",
+        dest="read_time",default="5")
+
+    parser.add_option("-W","--write_frequency",
+        help="Number of seconds between filewrites",
+        dest="write_time",default="5.1")
+
+    parser.add_option("-S","--use_samefile",
+        help="Set if you wish to use the same file for input and output",
+        action="store_true",dest="use_samefile",default=False)
+
     (opt, arg) = parser.parse_args()
     return opt
 
@@ -194,10 +211,22 @@ def main():
         except Exception(e):
     	    print("Logging is not supported on this system")
 
+    '''
+        If no input file is supplied, the use_samefile option can not be used.
+    '''
+    if option.use_samefile and (option.input_filename in {"None"}):
+        sys.exit("Can not use the same filename for input and output if no input filename is supplied")
+    elif option.use_samefile and (option.input_filename not in {"None"}):
+        InFilename = option.input_filename
+        OutFilename = option.input_filename
+    else:
+        InFilename = option.input_filename
+        OutFilename = option.output_filename
 
-    InFilename = option.input_filename #sys.argv[1]
-    OutFilename = option.output_filename #sys.argv[2]
-
+    '''
+        Initialize the datablock, if no input file is supplied we create
+        dummy data.
+    '''
     if InFilename in {"None"}:
         store = initialize_datablock()
     else:
@@ -205,14 +234,19 @@ def main():
 
     context = ModbusServerContext(slaves=store,single=True)
 
-    time = 5 # 5 seconds delay
+    read_time = float(option.read_time) # 5 seconds delay
+    write_time = float(option.write_time)
     loopOut = LoopingCall(f=write_filedata,a=(OutFilename,context))
-    loopOut.start(time, now=False)
+    loopOut.start(write_time, now=False)
+    '''
+        Skip creating a update loop for reading input from a file if no
+        input file is supplied.
+    '''
     if InFilename in {"None"}:
         pass
     else:
         loopIn = LoopingCall(f=updating_writer,a=(InFilename,context,))
-        loopIn.start(time+0.1, now=False) # initially delay by time
+        loopIn.start(read_time, now=False) # initially delay by time
 
     StartTcpServer(context, identity=identity, address=("localhost", 5020))
 
