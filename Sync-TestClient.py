@@ -62,15 +62,11 @@ client.connect()
 
 rq = client.write_coil(0, False)
 rr = client.read_coils(0,1)
-print("rr.bits[0]: ")
-print(rr.bits[0])
 assert(rq.function_code < 0x80)     # test that we are not an error
 assert(rr.bits[0] == False)          # test the expected value
 
 rq = client.write_coils(0, [True]*8)
 rr = client.read_coils(0,8)
-print("rr.bits[0]: ")
-print(rr.bits)
 assert(rq.function_code < 0x80)     # test that we are not an error
 assert(rr.bits == [True]*8)          # test the expected value
 
@@ -83,3 +79,13 @@ rq = client.write_registers(1, [10]*8)
 rr = client.read_holding_registers(1,8)
 assert(rq.function_code < 0x80)     # test that we are not an error
 assert(rr.registers == [10]*8)      # test the expected value
+
+rr = client.read_input_registers(0,1)
+assert(rr.registers[0] == 52)
+
+rr = client.read_discrete_inputs(0,4)
+'''
+    As we are only reading half a byte of coils, we have to add half a byte of
+    of data for our assertion to work ([False]*4)
+'''
+assert(rr.bits == [True]*4 + [False]*4)

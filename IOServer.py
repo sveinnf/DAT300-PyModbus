@@ -117,9 +117,9 @@ def updating_writer(a):
     i = 0
     #for i in range(0,51):
     while(context[0].validate(1,i) == True):
-        if context[0].getValues(2,i) is not data.getValues(2,i):
-            context[0].setValules(2,i,data.getValues(2,i))
-        if context[0].getValues(4,i) is not data.getValues(4,i):
+        if context[0].getValues(2,i) != data.getValues(2,i):
+            context[0].setValues(2,i,data.getValues(2,i))
+        if context[0].getValues(4,i) != data.getValues(4,i):
             context[0].setValues(4,i,data.getValues(4,i))
         i = i+1
         # context[0].setValues(1,i,data.getValues(1,i))
