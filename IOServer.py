@@ -195,6 +195,22 @@ def get_options():
         help="Set if you wish to use the same file for input and output",
         action="store_true",dest="use_samefile",default=False)
 
+    parser.add_option("--no_update",
+        help="Set if you don't want to periodically update from a input file",
+        action="store_true",dest="no_update",default=False)
+
+    parser.add_option("--no_output",
+        help="Set if you don't want to periodically write to a file",
+        action="store_true",dest="no_output",default=False)
+
+    parser.add_option("-A","--address",
+        help="Set server IP-address, default is localhost",
+        dest="ip_address",default="localhost")
+
+    parser.add_option("-P","--port",
+        help="Set server port, default is port 502",
+        dest="port",default="502")
+
     (opt, arg) = parser.parse_args()
     return opt
 
@@ -236,19 +252,23 @@ def main():
 
     read_time = float(option.read_time) # 5 seconds delay
     write_time = float(option.write_time)
-    loopOut = LoopingCall(f=write_filedata,a=(OutFilename,context))
-    loopOut.start(write_time, now=False)
+    if option.no_output == True:
+        pass
+    else:
+        loopOut = LoopingCall(f=write_filedata,a=(OutFilename,context))
+        loopOut.start(write_time, now=False)
+
     '''
         Skip creating a update loop for reading input from a file if no
         input file is supplied.
     '''
-    if InFilename in {"None"}:
+    if InFilename in {"None"} or option.no_update == True:
         pass
     else:
         loopIn = LoopingCall(f=updating_writer,a=(InFilename,context,))
         loopIn.start(read_time, now=False) # initially delay by time
 
-    StartTcpServer(context, identity=identity, address=("localhost", 5020))
+    StartTcpServer(context, identity=identity, address=(option.ip_address,int(option.port)))
 
 if __name__ == "__main__":
     main()
